@@ -1,18 +1,33 @@
-# ENCM509 
-# Group 3 Term Project : Speaker Recognition Using Python
-# Group Members: Charnjeet Gill, Nick Park, Carter Shaul
+# %% General Imports
 
+import numpy as np
+import scipy.io.wavfile as wav
+import python_speech_features as speech
+
+from sklearn.mixture import GaussianMixture
 
 # %% Read in training and testing data and create two data sets
 
-# TODO divide the data into a training and testing set. Use 1 or 2 subjects for validation
+NUM_TRAINING_SAMPLES = 3
+NUM_TESTING_SAMPLES = 3
+
+# Each entry in the training and testing sets will containg a tuple consisting of the
+# sample rate of the wav file and a numpy array containing the data read from the wav file
+training_set = []
+testing_set = []
+for i in range(1, NUM_TRAINING_SAMPLES + 1):
+    training_set.append(wav.read('./wav-files/0%d_train.wav' % i))
+    testing_set.append(wav.read('./wav-files/0%d_test.wav' % i))
 
 #-------------------------------------- END SECTION --------------------------------------#
 
 # %% Perform feature extraction on the data
 
-# TODO For each recording (training and test) perform the necessary feature extraction
-
+training_features = []
+testing_features = []
+for i in range(NUM_TRAINING_SAMPLES):
+    training_features.append(speech.mfcc(training_set[i][1], training_set[i][0]))
+    testing_features.append(speech.mfcc(testing_set[i][1], testing_set[i][0]))
 
 #-------------------------------------- END SECTION --------------------------------------#
 
