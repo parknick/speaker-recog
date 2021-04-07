@@ -10,7 +10,7 @@ from utils import plot_confusion_matrix
 
 # %% High level training parameters
 
-NUM_SUBJECTS = 5 # Change these values when you add or remove training and testing samples
+NUM_SUBJECTS = 2 # Change these values when you add or remove training and testing samples
 NUM_TRAINING_SAMPLES_PER_SUBJECT = 1 
 NUM_TESTING_SAMPLES_PER_SUBJECT = 2
 
@@ -28,21 +28,23 @@ testing_labels = []
 #   Sample freq
 #   Concatenated wav data from each training file for the subject
 for i in range(1, NUM_SUBJECTS + 1):
-    training_set.append(wav.read('./wav-files/subject_%d_train_1.wav' % i))
+
+    training_set.append(list(wav.read('./wav-files/subject_%d_train_1.wav' % i)))
+    print('./wav-files/subject_%d_train_1.wav' % i)
     for j in range(2, NUM_TRAINING_SAMPLES_PER_SUBJECT + 1):
-        training_sample = wav.read('./wav-files/subject_%d_train_%d.wav' % (i, j))
-        training_set[i-1][1] = np.concatenate(training_set[i-1][1], training_sample[1])
+        training_sample = list(wav.read('./wav-files/subject_%d_train_%d.wav' % (i, j)))
+        training_set[i-1][1] = np.concatenate((training_set[i-1][1], training_sample[1]), axis=0)
 
 # Read in all of the test wav files into the test set
 # Each entry in the test set will be a tuple with the folowing elements
 #   Sample freq
 #   Concatenated wav data from each test file for the subject
 for i in range(1, NUM_SUBJECTS + 1):
-    testing_set.append(wav.read('./wav-files/subject_%d_test_1.wav' % i))
+    testing_set.append(list(wav.read('./wav-files/subject_%d_test_1.wav' % i)))
     testing_labels.append(i)
     for j in range(2, NUM_TESTING_SAMPLES_PER_SUBJECT + 1):
-        testing_sample = wav.read('./wav-files/subject_%d_test_%d.wav' % (i, j))
-        testing_set[i-1][1] = np.concatenate(testing_set[i-1][1], testing_sample[1])
+        testing_sample = list(wav.read('./wav-files/subject_%d_test_%d.wav' % (i, j)))
+        testing_set[i-1][1] = np.concatenate((testing_set[i-1][1], testing_sample[1]), axis=0)
         testing_labels.append(i)
 
 #-------------------------------------- END SECTION --------------------------------------#
@@ -84,10 +86,20 @@ for i in range(len(gmm)):
     test2_scores.append(gmm[i].score(testing_features[1]))
 predicted_labels.append(test2_scores.index(max(test2_scores)) + 1)
 
-test3_scores = []
+""" test3_scores = []
 for i in range(len(gmm)):
     test3_scores.append(gmm[i].score(testing_features[2]))
 predicted_labels.append(test3_scores.index(max(test3_scores)) + 1)
+
+test4_scores = []
+for i in range(len(gmm)):
+    test4_scores.append(gmm[i].score(testing_features[3]))
+predicted_labels.append(test4_scores.index(max(test4_scores)) + 1)
+
+test5_scores = []
+for i in range(len(gmm)):
+    test5_scores.append(gmm[i].score(testing_features[4]))
+predicted_labels.append(test5_scores.index(max(test5_scores)) + 1) """
 
 
 confusionMatrix = confusion_matrix(testing_labels, predicted_labels)
