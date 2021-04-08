@@ -10,9 +10,9 @@ from utils import plot_confusion_matrix
 
 # %% High level training parameters
 
-NUM_SUBJECTS = 4 # Change these values when you add or remove training and testing samples
-NUM_TRAINING_SAMPLES_PER_SUBJECT = 3 
-NUM_TESTING_SAMPLES_PER_SUBJECT = 2
+NUM_SUBJECTS = 6 # Change these values when you add or remove training and testing samples
+NUM_TRAINING_SAMPLES_PER_SUBJECT = 1
+NUM_TESTING_SAMPLES_PER_SUBJECT = 4
 
 NUM_G_COMPONENTS = 10 # Number of gaussian mixture components
 
@@ -84,7 +84,7 @@ for i in range(len(testing_features)):
     scores.clear()
 
 confusionMatrix = confusion_matrix(testing_labels, predicted_labels)
-plot_confusion_matrix(cm=confusionMatrix, target_names = [i for i in range(1, NUM_TESTING_SAMPLES_PER_SUBJECT+1)])
+plot_confusion_matrix(cm=confusionMatrix, target_names = [i for i in range(1, NUM_SUBJECTS+1)])
 # TODO Record all the classification scores and generate a confusion matrix
 #-------------------------------------- END SECTION --------------------------------------#
 
