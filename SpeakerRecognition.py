@@ -11,8 +11,10 @@ from utils import plot_confusion_matrix
 # %% High level training parameters
 
 NUM_SUBJECTS = 6 # Change these values when you add or remove training and testing samples
-NUM_TRAINING_SAMPLES_PER_SUBJECT = 1
-NUM_TESTING_SAMPLES_PER_SUBJECT = 4
+NUM_TRAINING_SAMPLES_PER_SUBJECT = 2
+NUM_TESTING_SAMPLES_PER_SUBJECT = 3
+
+SCORE_THRESHOLD = -46
 
 NUM_G_COMPONENTS = 10 # Number of gaussian mixture components
 
@@ -71,24 +73,56 @@ for i in range(NUM_SUBJECTS):
 #-------------------------------------- END SECTION --------------------------------------#
 
 # %% Perform classification using the testing data
+
 predicted_labels = []
+testing_labels_copy = testing_labels.copy()
 
-print(len(testing_features))
-
+prediction_index = 0
 scores = []
 for i in range(len(testing_features)):
-    for j in range(len(gmm)):
+    
+    for j in range(len(gmm)): # Determine matching scores with the trained GMMs
         scores.append(gmm[j].score(testing_features[i]))
     
-    predicted_labels.append(scores.index(max(scores)) + 1)
+    if(max(scores) >= SCORE_THRESHOLD): # Check whether the score meets the identification threshold
+        predicted_labels.append(scores.index(max(scores)) + 1)
+
+        if(predicted_labels[prediction_index] == testing_labels[i]):
+            print_str = '\033[1;32;1mSubject %d identified correctly as Subject %d with score %.2f'
+        else:
+            print_str = '\033[1;31;1mSubject %d mis-identified as Subject %d with score %.2f'
+
+        print(print_str % (testing_labels[i], predicted_labels[prediction_index], max(scores)))
+        
+        prediction_index = prediction_index + 1
+    else:
+        print('\033[1;31;1mSubject was unable to be identified by the Speaker Recognition System (Subject %d)' % (testing_labels[i]))
+        testing_labels_copy.remove(testing_labels[i])
+
     scores.clear()
 
-confusionMatrix = confusion_matrix(testing_labels, predicted_labels)
+confusionMatrix = confusion_matrix(testing_labels_copy, predicted_labels)
 plot_confusion_matrix(cm=confusionMatrix, target_names = [i for i in range(1, NUM_SUBJECTS+1)])
 # TODO Record all the classification scores and generate a confusion matrix
 #-------------------------------------- END SECTION --------------------------------------#
 
 # %% Perform validation on a probe sample (not in the database) and match it against the trained model
+
+probe_sample = list(wav.read('./wav-files/unregistered_subject.wav'))
+probe_features = speech.mfcc(probe_sample[1], samplerate=8000)
+
+for i in range(len(gmm)):
+    scores.append(gmm[i].score(probe_features))
+
+for i in range(len(scores)):
+    print('Matching score to subject %d\t----\t%.2f' % (i, scores[i]))
+
+if(max(scores) < SCORE_THRESHOLD):
+    print('\n\033[1;32;1mProbe sample was not recognized by speaker recognition system')
+else:
+    print('\n\033[1;31;1mProbe sample was successfully recognized by speaker recognition system')
+
+scores.clear()
 
 # TODO Record the classification score
 
