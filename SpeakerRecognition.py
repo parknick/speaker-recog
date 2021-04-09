@@ -7,12 +7,14 @@ import python_speech_features as speech
 from sklearn.mixture import GaussianMixture
 from sklearn.metrics import confusion_matrix
 from utils import plot_confusion_matrix
+from utils import prediction_evaluation
 
 # %% High level training parameters
 
 NUM_SUBJECTS = 6 # Change these values when you add or remove training and testing samples
-NUM_TRAINING_SAMPLES_PER_SUBJECT = 2
-NUM_TESTING_SAMPLES_PER_SUBJECT = 3
+NUM_PROBE_SAMPLES = 5
+NUM_TRAINING_SAMPLES_PER_SUBJECT = 1
+NUM_TESTING_SAMPLES_PER_SUBJECT = 4
 
 SCORE_THRESHOLD = -46
 
@@ -76,6 +78,7 @@ for i in range(NUM_SUBJECTS):
 
 predicted_labels = []
 testing_labels_copy = testing_labels.copy()
+unidentified_count = 0
 
 prediction_index = 0
 scores = []
@@ -97,6 +100,7 @@ for i in range(len(testing_features)):
         prediction_index = prediction_index + 1
     else:
         print('\033[1;31;1mSubject was unable to be identified by the Speaker Recognition System (Subject %d)' % (testing_labels[i]))
+        unidentified_count = unidentified_count + 1
         testing_labels_copy.remove(testing_labels[i])
 
     scores.clear()
@@ -106,30 +110,38 @@ plot_confusion_matrix(cm=confusionMatrix, target_names = [i for i in range(1, NU
 # TODO Record all the classification scores and generate a confusion matrix
 #-------------------------------------- END SECTION --------------------------------------#
 
-# %% Perform validation on a probe sample (not in the database) and match it against the trained model
+# %% Perform validation on bunch of probe samples (not in the database) and match it against the trained model
 
-probe_sample = list(wav.read('./wav-files/unregistered_subject.wav'))
-probe_features = speech.mfcc(probe_sample[1], samplerate=8000)
+num_true_rejections = 0
+num_false_acceptances = 0
 
-for i in range(len(gmm)):
-    scores.append(gmm[i].score(probe_features))
+probe_samples = [] # Load in probe samples
+for i in range(1, NUM_PROBE_SAMPLES + 1):
+    probe_sample = wav.read('./wav-files/probe_%d.wav' % (i))
+    probe_samples.append(probe_sample)
 
-for i in range(len(scores)):
-    print('Matching score to subject %d\t----\t%.2f' % (i, scores[i]))
+probe_features = [] # Extract probe features
+for i in range(NUM_PROBE_SAMPLES):
+    probe_features.append(speech.mfcc(probe_samples[i][1], samplerate=8000))
 
-if(max(scores) < SCORE_THRESHOLD):
-    print('\n\033[1;32;1mProbe sample was not recognized by speaker recognition system')
-else:
-    print('\n\033[1;31;1mProbe sample was successfully recognized by speaker recognition system')
-
-scores.clear()
-
-# TODO Record the classification score
+for i in range(len(probe_features)):
+    
+    for j in range(len(gmm)): # Determine matching scores with the trained GMMs
+        scores.append(gmm[j].score(probe_features[i]))
+    
+    if(max(scores) >= SCORE_THRESHOLD): # Check whether the score meets the identification threshold
+        print("\033[1;31;1mProbe Subject was mistakenly Identified by System as Subject %d" % (scores.index(max(scores))))
+        num_false_acceptances = num_false_acceptances + 1
+    else:
+        print("\033[1;32;1mProbe Subject was NOT Identified by System")    
+        num_true_rejections = num_true_rejections + 1    
+    
+    scores.clear()
 
 #-------------------------------------- END SECTION --------------------------------------#
 
 # %% Evaluation
 
-# TODO Evaluate the error rates using the confusion matrix
+prediction_evaluation(predicted_labels, testing_labels_copy, unidentified_count, num_true_rejections, num_false_acceptances)
 
 #-------------------------------------- END SECTION --------------------------------------#

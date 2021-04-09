@@ -82,7 +82,7 @@ def plot_confusion_matrix(cm,
     plt.show()
 
 
-def prediction_evaluation(predicted_labels, true_labels, subject_id=1):
+def prediction_evaluation(predicted_label, true_label, unidentified, num_true_rejections, num_false_acceptances):
     # accuracy can be calculated as: 
     # predictedRight / (predictedRight + predictedWrong)
     right, wrong = 0, 0
@@ -101,15 +101,16 @@ def prediction_evaluation(predicted_labels, true_labels, subject_id=1):
     
     TP, FP, TN, FN = 0, 0, 0, 0
     for predictedLabel, realLabel in zip(predicted_label, true_label):
-        if predictedLabel == subject_id and realLabel == subject_id:
+        if predictedLabel == realLabel:
             TP += 1
-        if predictedLabel != subject_id and realLabel == subject_id:
-            FN += 1
-        if predictedLabel != subject_id and realLabel != subject_id:
-            TN += 1
-        if predictedLabel == subject_id and realLabel != subject_id:
+        if predictedLabel != realLabel:
             FP += 1
-    print("Subject #%d:\n\tTP: %d, FP: %d, TN: %d, FN: %d" % (subject_id, TP, FP, TN, FN))
+
+    TN = num_true_rejections
+    FP = FP + num_false_acceptances
+    FN = unidentified
+    
+    print("\n\tTP: %d, FP: %d, TN: %d, FN: %d" % (TP, FP, TN, FN))
     
     # True Positive Rate (TPR) also known as Sensitivity or Recall
     TPR = TP / (TP + FN)
