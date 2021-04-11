@@ -11,12 +11,13 @@ from utils import prediction_evaluation
 
 # %% High level training parameters
 
-NUM_SUBJECTS = 6 # Change these values when you add or remove training and testing samples
-NUM_PROBE_SAMPLES = 5
+# Change these values when you add or remove training and testing samples
+NUM_SUBJECTS = 6 
+NUM_PROBE_SAMPLES = 5 
 NUM_TRAINING_SAMPLES_PER_SUBJECT = 1
 NUM_TESTING_SAMPLES_PER_SUBJECT = 4
 
-SCORE_THRESHOLD = -46
+SCORE_THRESHOLD = -46 # Identification score threshold
 
 NUM_G_COMPONENTS = 10 # Number of gaussian mixture components
 
@@ -46,8 +47,6 @@ for i in range(1, NUM_SUBJECTS + 1):
         testing_sample = list(wav.read('./wav-files/subject_%d_test_%d.wav' % (i, j)))
         testing_set.append(testing_sample)
         testing_labels.append(i)
-
-
 #-------------------------------------- END SECTION --------------------------------------#
 
 # %% Perform feature extraction on the data
@@ -61,7 +60,6 @@ for i in range(NUM_SUBJECTS):
 
 for i in range(NUM_TESTING_SAMPLES_PER_SUBJECT * NUM_SUBJECTS):
     testing_features.append(speech.mfcc(testing_set[i][1], samplerate=8000))
-
 #-------------------------------------- END SECTION --------------------------------------#
 
 # %% Train the GMM models using the training samples
@@ -71,7 +69,6 @@ for i in range(NUM_TESTING_SAMPLES_PER_SUBJECT * NUM_SUBJECTS):
 gmm = []
 for i in range(NUM_SUBJECTS):
     gmm.append(GaussianMixture(n_components=NUM_G_COMPONENTS).fit(training_features[i]))
-
 #-------------------------------------- END SECTION --------------------------------------#
 
 # %% Perform classification using the testing data
@@ -82,7 +79,7 @@ unidentified_count = 0
 
 prediction_index = 0
 scores = []
-for i in range(len(testing_features)):
+for i in range(len(testing_features)): # Loop through all of the testing features and perform classification using the trained GMMs
     
     for j in range(len(gmm)): # Determine matching scores with the trained GMMs
         scores.append(gmm[j].score(testing_features[i]))
@@ -90,7 +87,7 @@ for i in range(len(testing_features)):
     if(max(scores) >= SCORE_THRESHOLD): # Check whether the score meets the identification threshold
         predicted_labels.append(scores.index(max(scores)) + 1)
 
-        if(predicted_labels[prediction_index] == testing_labels[i]):
+        if(predicted_labels[prediction_index] == testing_labels[i]): # Predicted label was correct
             print_str = '\033[1;32;1mSubject %d identified correctly as Subject %d with score %.2f'
         else:
             print_str = '\033[1;31;1mSubject %d mis-identified as Subject %d with score %.2f'
@@ -105,9 +102,8 @@ for i in range(len(testing_features)):
 
     scores.clear()
 
-confusionMatrix = confusion_matrix(testing_labels_copy, predicted_labels)
+confusionMatrix = confusion_matrix(testing_labels_copy, predicted_labels) # Create confusion matrix with the results of the classification
 plot_confusion_matrix(cm=confusionMatrix, target_names = [i for i in range(1, NUM_SUBJECTS+1)])
-# TODO Record all the classification scores and generate a confusion matrix
 #-------------------------------------- END SECTION --------------------------------------#
 
 # %% Perform validation on bunch of probe samples (not in the database) and match it against the trained model
@@ -124,7 +120,7 @@ probe_features = [] # Extract probe features
 for i in range(NUM_PROBE_SAMPLES):
     probe_features.append(speech.mfcc(probe_samples[i][1], samplerate=8000))
 
-for i in range(len(probe_features)):
+for i in range(len(probe_features)): # Loop through all probe features and validate that the system does not identify them
     
     for j in range(len(gmm)): # Determine matching scores with the trained GMMs
         scores.append(gmm[j].score(probe_features[i]))
@@ -137,11 +133,9 @@ for i in range(len(probe_features)):
         num_true_rejections = num_true_rejections + 1    
     
     scores.clear()
-
 #-------------------------------------- END SECTION --------------------------------------#
 
 # %% Evaluation
 
-prediction_evaluation(predicted_labels, testing_labels_copy, unidentified_count, num_true_rejections, num_false_acceptances)
-
+prediction_evaluation(predicted_labels, testing_labels_copy, unidentified_count, num_true_rejections, num_false_acceptances) # Determine the prediction metrics
 #-------------------------------------- END SECTION --------------------------------------#
