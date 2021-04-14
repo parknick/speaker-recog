@@ -14,8 +14,8 @@ from utils import prediction_evaluation
 # Change these values when you add or remove training and testing samples
 NUM_SUBJECTS = 6 
 NUM_PROBE_SAMPLES = 5 
-NUM_TRAINING_SAMPLES_PER_SUBJECT = 1
-NUM_TESTING_SAMPLES_PER_SUBJECT = 4
+NUM_TRAINING_SAMPLES_PER_SUBJECT = 3
+NUM_TESTING_SAMPLES_PER_SUBJECT = 2
 
 SCORE_THRESHOLD = -46 # Identification score threshold
 
