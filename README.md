@@ -1,5 +1,6 @@
 # speaker-recog
-Lab project for ENCM 509 at the University of Calgary
+
+> Lab project for ENCM 509 at the University of Calgary
 
 The SpeakerRecognition.py file contains code that utilizes Gaussian Mixture Models and Log-likelihood scores to 
 attempt recognition of multiple speakers in a provided 'database'.
@@ -8,7 +9,7 @@ The code has been developed in such a way that by changing a couple of high leve
 and corresponding output of the code can be changed depending on the number of training and testing
 samples desired.
 
-***ALL AUDIO FILES MUST BE SAVED IN A FOLDER NAMED "wav-files" IN ORDER FOR THIS PROJECT TO WORK
+**ALL AUDIO FILES MUST BE SAVED IN A FOLDER NAMED "wav-files" IN ORDER FOR THIS PROJECT TO WORK.**
 The naming scheme for audio files is summarized in the list below:
     
     - Subject files for training: "subject_x_train_y.wav"
